@@ -74,10 +74,11 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
     const reward = [quest.gold && `${quest.gold} Gold`, quest.gp && `${quest.gp} Guild Points`, `${quest.trust} Trust`].filter(Boolean).join(" · ");
     if (counterOpen) {
       const pella = quest.npc === "pella_mosswick";
+      const placement = quest.npc === "tamsin_vale";
       const closeCounter = () => setCounterOpen(false);
-      return <GameDialog key="counter" title={`At the counter · ${npc.name}`} dialogClassName={styles.counterDialog} onClose={closeCounter}>
+      return <GameDialog key="counter" title={`At the counter · ${npc.name}`} dialogClassName={`${styles.counterDialog} ${placement ? styles.placementDialog : ""}`} onClose={closeCounter}>
         <div className={styles.counterScene} data-pella={pella}>
-          {!pella && <img src={quest.portrait} alt="" onError={event => {
+          {!pella && !placement && <img src={quest.portrait} alt="" onError={event => {
             const fallback = artRoot + "topic-request.webp";
             if (event.currentTarget.getAttribute("src") !== fallback) event.currentTarget.src = fallback;
           }} />}
@@ -86,11 +87,15 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
         <section className={styles.counterPaper}>
           <p className={styles.counterName}>{npc.name}</p>
           <div className={styles.counterDetail}>
-            <img src={pella ? artRoot + "counter-crate.webp" : quest.art} alt="" />
+            {!placement && <img src={pella ? artRoot + "counter-crate.webp" : quest.art} alt="" />}
             <div>
               <h3>{quest.title}</h3>
               <p className={styles.status}>{quest.claimed ? "✓ Reward claimed" : quest.ready ? "✓ Ready to claim" : "In progress"}</p>
-              <p className={styles.counterReward}><img src={artRoot + "ledger-coins.webp"} alt="" />{reward}</p>
+              {placement ? <p className={styles.placementRewards}>
+                {quest.gold > 0 && <span><img src={artRoot + "ledger-coins.webp"} alt="" />{quest.gold} Gold</span>}
+                {quest.gp > 0 && <span>{quest.gp} Guild Points</span>}
+                <span><img src={artRoot + "placement-trust.webp"} alt="" />{quest.trust} Trust</span>
+              </p> : <p className={styles.counterReward}><img src={artRoot + "ledger-coins.webp"} alt="" />{reward}</p>}
             </div>
           </div>
           {claimMessage && <p role="status" className={styles.counterMessage}>{claimMessage}</p>}

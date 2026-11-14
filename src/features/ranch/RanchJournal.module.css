@@ -189,3 +189,74 @@ dialog.counterDialog { border-radius: 10px; box-shadow: 0 0 0 1px #ab854b, 0 18p
   url('/images/ui/adoption-gallery/ledger-sprig.webp') right 8px center / 24px auto no-repeat,
   url('/images/ui/adoption-gallery/ledger-button.webp') center / 100% 100% no-repeat;
 }
+
+dialog.placementDialog {
+ width: min(510px, calc(100vw - 18px));
+ max-height: calc(100dvh - 16px);
+ border: 3px double #c49d58;
+ background: #202819;
+}
+.placementDialog .counterScene {
+ height: clamp(180px, calc(100dvh - 232px), 532px);
+ background-image: url('/images/ui/adoption-gallery/placement-desk.webp');
+ background-position: center 53%;
+}
+.placementDialog .counterPaper { margin: 0; padding: 10px 14px 14px; }
+.placementDialog .counterName {
+ width: auto;
+ margin: 0 0 2px;
+ padding: 0;
+ color: #25351f;
+ background: none;
+ font-size: clamp(22px, 4.5vw, 34px);
+}
+.placementDialog .counterDetail { display: block; }
+.placementDialog .counterDetail h3 {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 12px;
+ color: #26361f;
+ font-style: italic;
+ font-size: clamp(22px, 4.4vw, 34px);
+ line-height: 1.1;
+ margin: 0 0 7px;
+}
+.placementDialog .counterDetail h3::before,
+.placementDialog .counterDetail h3::after {
+ content: "";
+ width: clamp(14px, 8vw, 54px);
+ height: 1px;
+ background: #927040;
+}
+.placementDialog .status {
+ border-image: url('/images/ui/adoption-gallery/ledger-button-muted.webp') 32 fill / 14px stretch;
+ background: none;
+ padding: 6px 19px;
+}
+.placementDialog .placementRewards {
+ display: flex;
+ flex-wrap: wrap;
+ justify-content: center;
+ gap: 4px 18px;
+ margin: 7px 0 3px;
+ font-size: clamp(15px, 3.8vw, 21px);
+ font-weight: bold;
+ line-height: 1.2;
+}
+.placementRewards span { display: inline-flex; align-items: center; gap: 6px; }
+.placementRewards img { width: 25px; height: 25px; object-fit: contain; }
+.placementDialog .counterAction {
+ border: 1px solid transparent;
+ border-image: url('/images/ui/adoption-gallery/talk-button.webp') 48 fill / 16px stretch;
+ background: none;
+ min-height: 44px;
+}
+@media (orientation: landscape) and (max-height: 510px) {
+ dialog.placementDialog { width: min(720px, calc(100vw - 18px)); }
+ .placementDialog > header + div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+ .placementDialog .counterScene { height: auto; min-height: min(270px, calc(100dvh - 23px)); }
+ .placementDialog .counterPaper { display: flex; flex-direction: column; justify-content: center; }
+ .placementDialog .counterDetail h3::before,
+ .placementDialog .counterDetail h3::after { display: none; }
+}
