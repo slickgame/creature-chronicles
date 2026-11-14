@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { getChapterOneStoryLog } from "@/data/chapterOneStory";
-import { getNpcQuestChain } from "@/data/npcQuests";
+import { claimNpcQuest, getNpcQuestChain } from "@/data/npcQuests";
 import { TOWN_NPCS } from "@/data/townNpcs";
 import { getStarterGoals } from "@/data/starterGoals";
 import { useGameContext } from "@/state/GameProvider";
@@ -11,17 +11,20 @@ import styles from "./RanchJournal.module.css";
 import { RanchReview } from "./RanchReview";
 
 export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => void; storyOnly?: boolean }) {
-  const { currentSave: save, goToMarket, goToGuildHall, goToSupplyDepot, goToEggAtelier } = useGameContext();
+  const { currentSave: save, saveCurrentGame } = useGameContext();
   const [selectedId, setSelectedId] = useState<string>();
+  const [counterOpen, setCounterOpen] = useState(false);
+  const [claimMessage, setClaimMessage] = useState("");
+  const claimLock = useRef(false);
   if (!save) return null;
 
   const goals = storyOnly ? [] : getStarterGoals(save);
   const artRoot = "/images/ui/adoption-gallery/";
   const sources = [
-    { npc: "tamsin_vale", category: "Hearth requests", portrait: artRoot + "tamsin.webp", visit: goToMarket },
-    { npc: "mara_vell", category: "Guild requests", portrait: TOWN_NPCS.mara_vell.portraitPath, visit: goToGuildHall },
-    { npc: "pella_mosswick", category: "Supply Depot requests", portrait: TOWN_NPCS.pella_mosswick.portraitPath, visit: goToSupplyDepot },
-    { npc: "selene_virell", category: "Egg Atelier requests", portrait: TOWN_NPCS.selene_virell.portraitPath, visit: goToEggAtelier },
+    { npc: "tamsin_vale", category: "Hearth requests", portrait: artRoot + "tamsin.webp" },
+    { npc: "mara_vell", category: "Guild requests", portrait: TOWN_NPCS.mara_vell.portraitPath },
+    { npc: "pella_mosswick", category: "Supply Depot requests", portrait: TOWN_NPCS.pella_mosswick.portraitPath },
+    { npc: "selene_virell", category: "Egg Atelier requests", portrait: TOWN_NPCS.selene_virell.portraitPath },
   ] as const;
   const requests = storyOnly ? [] : sources.flatMap(source =>
     getNpcQuestChain(save, source.npc).filter(quest => quest.accepted).map(quest => ({
@@ -69,7 +72,40 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
   if (quest) {
     const npc = TOWN_NPCS[quest.npc];
     const reward = [quest.gold && `${quest.gold} Gold`, quest.gp && `${quest.gp} Guild Points`, `${quest.trust} Trust`].filter(Boolean).join(" · ");
-    return <GameDialog fullScreen title="Ranch Journal" onClose={onClose}>
+    if (counterOpen) {
+      const pella = quest.npc === "pella_mosswick";
+      const closeCounter = () => setCounterOpen(false);
+      return <GameDialog key="counter" title={`At the counter · ${npc.name}`} dialogClassName={styles.counterDialog} onClose={closeCounter}>
+        <div className={styles.counterScene} data-pella={pella}>
+          {!pella && <img src={quest.portrait} alt="" onError={event => {
+            const fallback = artRoot + "topic-request.webp";
+            if (event.currentTarget.getAttribute("src") !== fallback) event.currentTarget.src = fallback;
+          }} />}
+          <button type="button" aria-label="Back to journal" onClick={closeCounter}>×</button>
+        </div>
+        <section className={styles.counterPaper}>
+          <p className={styles.counterName}>{npc.name}</p>
+          <div className={styles.counterDetail}>
+            <img src={pella ? artRoot + "counter-crate.webp" : quest.art} alt="" />
+            <div>
+              <h3>{quest.title}</h3>
+              <p className={styles.status}>{quest.claimed ? "✓ Reward claimed" : quest.ready ? "✓ Ready to claim" : "In progress"}</p>
+              <p className={styles.counterReward}><img src={artRoot + "ledger-coins.webp"} alt="" />{reward}</p>
+            </div>
+          </div>
+          {claimMessage && <p role="status" className={styles.counterMessage}>{claimMessage}</p>}
+          {quest.ready ? <button className={styles.counterAction} type="button" data-initial-focus onClick={() => {
+            if (claimLock.current) return;
+            claimLock.current = true;
+            const result = claimNpcQuest(save, quest.npc, quest.index);
+            if (result.ok) saveCurrentGame(result.save);
+            setClaimMessage(result.message);
+            if (!result.ok) claimLock.current = false;
+          }}>Claim Reward</button> : <button className={styles.counterAction} type="button" onClick={closeCounter}>Back to Journal</button>}
+        </section>
+      </GameDialog>;
+    }
+    return <GameDialog key="journal" fullScreen title="Ranch Journal" onClose={onClose}>
       <main className={styles.desk}>
         <div className={styles.book}>
           <aside className={styles.index}>
@@ -102,7 +138,7 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
               <p>{quest.requirement}</p>
             </div>
             <p className={styles.reward}><img src="/images/ui/adoption-gallery/ledger-coins.webp" alt="" />{reward}</p>
-            {quest.ready && <button type="button" className={styles.return} onClick={() => { onClose(); quest.visit(); }}>Return to {quest.npc === "selene_virell" ? "Selene" : npc.name.split(" ")[0]}</button>}
+            {quest.ready && <button type="button" className={styles.return} onClick={() => { setSelectedId(quest.id); claimLock.current = false; setClaimMessage(""); setCounterOpen(true); }}>Return to {quest.npc === "selene_virell" ? "Selene" : npc.name.split(" ")[0]}</button>}
             {quest.claimed && <img className={styles.seal} src="/images/ui/adoption-gallery/ledger-seal.webp" alt="" />}
           </article>
         </div>

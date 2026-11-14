@@ -122,3 +122,70 @@
 @media (max-width: 620px) and (orientation: portrait) {
  .index nav { display: none; }
 }
+dialog.counterDialog {
+ width: min(590px, calc(100vw - 16px));
+ border: 0;
+ background: #342215;
+ color: #332215;
+ font-family: Georgia, serif;
+}
+.counterDialog > header { display: none; }
+.counterDialog > header + div { padding: 0; }
+.counterScene {
+ position: relative;
+ height: clamp(120px, 43dvh, 350px);
+ background: #49331f url('/images/ui/adoption-gallery/hearth.webp') center / cover;
+}
+.counterScene[data-pella="true"] {
+ background-image: url('/images/ui/adoption-gallery/counter-pella.webp');
+ background-position: center 43%;
+}
+.counterScene > img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: bottom; }
+.counterScene > button,.counterDialog .counterAction {
+ border: 0;
+ color: #fff0ce;
+ background: url('/images/ui/adoption-gallery/ledger-button.webp') center / 100% 100% no-repeat;
+ font-family: inherit;
+}
+.counterScene > button { position: absolute; top: 8px; right: 8px; width: 44px; padding: 0; font-size: 27px; }
+.counterPaper {
+ position: relative;
+ margin: 0 7px 8px;
+ padding: 20px 14px 14px;
+ border: 1px solid transparent;
+ border-image: url('/images/ui/adoption-gallery/ledger-paper.webp') 85 fill / 23px stretch;
+ text-align: center;
+}
+.counterDialog .counterName {
+ width: min(320px, 74%);
+ margin: -39px auto 10px;
+ padding: 8px 12px;
+ position: relative;
+ color: #fff0ce;
+ background: url('/images/ui/adoption-gallery/ledger-button-muted.webp') center / 100% 100%;
+ font-weight: bold;
+ font-size: clamp(16px, 3vw, 24px);
+ line-height: 1.2;
+}
+.counterDetail { display: grid; grid-template-columns: minmax(55px, 25%) minmax(0, 1fr); align-items: center; gap: 7px; }
+.counterDetail > img { width: 100%; max-height: 108px; object-fit: contain; }
+.counterDetail h3 { font-size: clamp(17px, 3vw, 25px); margin: 0 0 4px; }
+.counterDetail .status { display: inline-block; font-size: .9rem; padding: 3px 14px; margin: 0; }
+.counterDialog .counterReward { margin: 5px 0; font-weight: bold; line-height: 1.2; }
+.counterReward img { width: 25px; vertical-align: middle; margin-right: 5px; }
+.counterDialog .counterAction { min-width: min(290px, 90%); margin-top: 5px; font-size: clamp(17px,3vw,25px); padding: 8px 19px; }
+.counterDialog .counterMessage { font-size: .86rem; line-height: 1.2; margin: 4px 0; }
+@media (max-height: 490px) and (orientation: landscape) {
+ .counterScene { height: 38dvh; }
+ .counterPaper { padding-block: 14px 8px; }
+ .counterDialog .counterName { margin-top: -28px; padding: 4px 12px; }
+ .counterDetail > img { max-height: 58px; }
+}
+dialog.counterDialog { border-radius: 10px; box-shadow: 0 0 0 1px #ab854b, 0 18px 60px #0009; }
+.counterDialog .counterAction {
+ padding-inline: 34px;
+ background:
+  url('/images/ui/adoption-gallery/ledger-sprig.webp') left 8px center / 24px auto no-repeat,
+  url('/images/ui/adoption-gallery/ledger-sprig.webp') right 8px center / 24px auto no-repeat,
+  url('/images/ui/adoption-gallery/ledger-button.webp') center / 100% 100% no-repeat;
+}
