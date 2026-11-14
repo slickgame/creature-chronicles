@@ -4,10 +4,10 @@ import type { GameSave } from "@/types/save";
 import styles from "./Hearthside.module.css";
 
 export const tamsinTopics = [
-  { title: "Ask about adoption", icon: "ledger-fence" },
-  { title: "How are things at the Hearth?", icon: "ledger-sprig" },
-  { title: "Need a hand?", icon: "talk-gate" },
-  { title: "Spend time together", icon: "ledger-purse" },
+  { title: "Ask about adoption", icon: "topic-adoption" },
+  { title: "How are things at the Hearth?", icon: "topic-chat" },
+  { title: "Need a hand?", icon: "topic-request" },
+  { title: "Spend time together", icon: "topic-tea" },
 ] as const;
 
 export const adoptionAdvice = [
