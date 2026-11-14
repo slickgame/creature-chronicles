@@ -492,3 +492,67 @@ dialog.adoptionDialog {
  .adoptionSpread .ledgerDetails h3 { font-size:22px; padding-bottom:3px; }
  .ledgerIcon { height:16px; width:16px; }
 }
+
+/* The crest occupies its own row so the title has room on narrow screens. */
+dialog.adoptionDialog {
+ padding:12px clamp(12px,3vw,29px) 20px;
+ border-image:url('/images/ui/adoption-gallery/ledger-window.webp') 84 fill / 30px stretch;
+ background:#14271b;
+}
+.adoptionDialog > header {
+ grid-template-rows:auto auto; row-gap:9px;
+ padding:0 0 12px;
+}
+.adoptionDialog > header::before {
+ position:static; grid-column:2; grid-row:1;
+ justify-self:center; width:clamp(84px,12vw,125px); height:clamp(42px,7dvh,65px);
+ transform:none; background-image:url('/images/ui/adoption-gallery/ledger-dome.webp');
+}
+.adoptionDialog > header h2 { grid-row:2; }
+.adoptionDialog > header button { grid-row:2; }
+.adoptionDialog footer button,
+.adoptionDialog footer button:last-child {
+ border:0; border-radius:0; min-height:54px; padding:9px 26px 11px;
+ background:transparent url('/images/ui/adoption-gallery/ledger-button.webp') center/100% 100% no-repeat;
+ text-shadow:0 2px 3px #0b1608;
+}
+.adoptionDialog footer button:not(:last-child) {
+ background-image:url('/images/ui/adoption-gallery/ledger-button-muted.webp');
+}
+.adoptionDialog footer button:only-child { min-width:min(300px,92%); }
+@media(max-width:560px) and (orientation:portrait) {
+ dialog.adoptionDialog { padding:8px 10px 12px; border-image-width:22px; }
+ .adoptionDialog > header { row-gap:7px; padding-bottom:7px; }
+ .adoptionDialog footer button,.adoptionDialog footer button:last-child { min-height:42px; padding:7px 15px 9px; }
+}
+@media(max-height:430px) and (orientation:landscape) {
+ dialog.adoptionDialog { padding-block:6px; }
+ .adoptionDialog > header { row-gap:4px; padding-bottom:5px; margin-bottom:5px; }
+ .adoptionDialog > header::before { width:70px; height:29px; }
+ .adoptionDialog footer button,.adoptionDialog footer button:last-child { min-height:38px; font-size:16px; }
+}
+@media(min-width:700px) and (min-height:550px) {
+ .adoptionDialog > header { row-gap:13px; }
+ .adoptionSpread .requirements div,.adoptionSpread .settled { font-size:clamp(16px,1.45vw,21px); }
+ .adoptionDialog footer { gap:18px; }
+ .adoptionDialog footer button { min-width:170px; }
+ .adoptionDialog footer button:last-child { min-width:275px; }
+}
+@media(max-height:430px) and (orientation:landscape) {
+ .adoptionSpread .requirements { margin-top:3px; }
+ .adoptionSpread .requirements div { padding-block:2px; }
+ .adoptionSpread .settled { margin-top:3px; padding-block:3px; }
+ .adoptionSpread figure { min-height:0; }
+ .adoptionDialog footer { margin-top:5px; }
+ .adoptionDialog footer button,.adoptionDialog footer button:last-child { min-height:34px; padding-block:5px; }
+}
+.ledgerStamp { white-space:nowrap; font-size:clamp(7px,1.1vw,11px); }
+@media(max-height:430px) and (orientation:landscape) {
+ .adoptionDialog > header::before { height:22px; }
+ .adoptionDialog > header button { width:26px; min-height:26px; }
+ .adoptionSpread { padding:6px; }
+ .adoptionSpread .requirements div { padding-block:1px; }
+ .adoptionSpread .ledgerStamp { width:40px; padding-top:14px; }
+ .adoptionSpread .slotMarks > span { width:13px; height:13px; }
+ .adoptionDialog footer button,.adoptionDialog footer button:last-child { min-height:32px; }
+}
