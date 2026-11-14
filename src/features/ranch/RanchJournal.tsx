@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getChapterOneStoryLog } from "@/data/chapterOneStory";
 import { getNpcQuestChain } from "@/data/npcQuests";
+import { TOWN_NPCS } from "@/data/townNpcs";
 import { getStarterGoals } from "@/data/starterGoals";
 import { useGameContext } from "@/state/GameProvider";
 import { GameDialog } from "@/features/ui/GameDialog";
@@ -10,18 +11,29 @@ import styles from "./RanchJournal.module.css";
 import { RanchReview } from "./RanchReview";
 
 export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => void; storyOnly?: boolean }) {
-  const { currentSave: save, goToMarket } = useGameContext();
+  const { currentSave: save, goToMarket, goToGuildHall } = useGameContext();
   const [selectedId, setSelectedId] = useState<string>();
   if (!save) return null;
 
   const goals = storyOnly ? [] : getStarterGoals(save);
-  const requests = storyOnly ? [] : getNpcQuestChain(save, "tamsin_vale").filter(quest => quest.accepted);
+  const artRoot = "/images/ui/adoption-gallery/";
+  const sources = [
+    { npc: "tamsin_vale", category: "Hearth requests", portrait: artRoot + "tamsin.webp", visit: goToMarket },
+    { npc: "mara_vell", category: "Guild requests", portrait: TOWN_NPCS.mara_vell.portraitPath, visit: goToGuildHall },
+  ] as const;
+  const requests = storyOnly ? [] : sources.flatMap(source =>
+    getNpcQuestChain(save, source.npc).filter(quest => quest.accepted).map(quest => ({
+      ...quest, ...source,
+      id: `${source.npc}-request-${quest.index}`,
+      art: source.npc === "mara_vell" ? artRoot + "topic-request.webp" : artRoot + (quest.index === 0 ? "journal-home.webp" : "journal-rescue.webp"),
+    })),
+  ).sort((a, b) => Number(b.ready) - Number(a.ready) || Number(a.claimed) - Number(b.claimed));
   const stories = getChapterOneStoryLog(save);
   const records = [
     ...requests.map(quest => ({
-      id: `tamsin-request-${quest.index}`,
+      id: quest.id,
       title: quest.title,
-      category: "Hearth requests",
+      category: quest.category,
       pages: [],
     })),
     ...goals.map(goal => ({
@@ -51,9 +63,9 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
       )}
     </select>
   </label>;
-  const quest = requests.find(item => record.id === `tamsin-request-${item.index}`);
+  const quest = requests.find(item => record.id === item.id);
   if (quest) {
-    const art = quest.index === 0 ? "home" : "rescue";
+    const npc = TOWN_NPCS[quest.npc];
     const reward = [quest.gold && `${quest.gold} Gold`, quest.gp && `${quest.gp} Guild Points`, `${quest.trust} Trust`].filter(Boolean).join(" · ");
     return <GameDialog fullScreen title="Ranch Journal" onClose={onClose}>
       <main className={styles.desk}>
@@ -61,12 +73,12 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
           <aside className={styles.index}>
             <button type="button" onClick={onClose}>‹ Back</button>
             <h1>Ranch Journal</h1>
-            <h2><img src="/images/ui/adoption-gallery/topic-request.webp" alt="" />Hearth requests</h2>
-            <nav aria-label="Hearth requests">
+            <h2><img src="/images/ui/adoption-gallery/topic-request.webp" alt="" />Town requests</h2>
+            <nav aria-label="Town requests">
               {requests.map(item => (
-                <button key={item.index} type="button" aria-current={item.index === quest.index ? "page" : undefined} onClick={() => setSelectedId(`tamsin-request-${item.index}`)}>
-                  <img src={`/images/ui/adoption-gallery/journal-${item.index === 0 ? "home" : "rescue"}.webp`} alt="" />
-                  <span>{item.title}</span>
+                <button key={item.id} type="button" aria-current={item.id === quest.id ? "page" : undefined} onClick={() => setSelectedId(item.id)}>
+                  <img src={item.art} data-guild={item.npc === "mara_vell"} alt="" />
+                  <span>{item.title}{item.ready && <small>Reward ready</small>}</span>
                 </button>
               ))}
             </nav>
@@ -74,8 +86,8 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
           </aside>
           <article className={styles.record} aria-labelledby="hearth-request-title">
             <div className={styles.steward}>
-              <img src="/images/ui/adoption-gallery/tamsin.webp" alt="" />
-              <p><em>Adoption Steward</em><strong>Tamsin Vale</strong></p>
+              <img key={quest.npc} src={quest.portrait} alt="" onError={event => { event.currentTarget.src = artRoot + "topic-request.webp"; }} />
+              <p><em>{npc.title}</em><strong>{npc.name}</strong></p>
             </div>
             <h2 id="hearth-request-title">{quest.title}</h2>
             <p className={styles.status} data-status={quest.claimed ? "claimed" : quest.ready ? "ready" : "active"}>
@@ -83,11 +95,11 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
               <strong>{quest.claimed ? "Reward claimed" : quest.ready ? "Ready to claim" : "In progress"}</strong> · {quest.current}/{quest.target}
             </p>
             <div className={styles.objective}>
-              <img src={`/images/ui/adoption-gallery/journal-${art}.webp`} alt="" />
+              <img src={quest.art} data-guild={quest.npc === "mara_vell"} alt="" />
               <p>{quest.requirement}</p>
             </div>
             <p className={styles.reward}><img src="/images/ui/adoption-gallery/ledger-coins.webp" alt="" />{reward}</p>
-            {quest.ready && <button type="button" className={styles.return} onClick={() => { onClose(); goToMarket(); }}>Return to Tamsin</button>}
+            {quest.ready && <button type="button" className={styles.return} onClick={() => { onClose(); quest.visit(); }}>Return to {npc.name.split(" ")[0]}</button>}
             {quest.claimed && <img className={styles.seal} src="/images/ui/adoption-gallery/ledger-seal.webp" alt="" />}
           </article>
         </div>
