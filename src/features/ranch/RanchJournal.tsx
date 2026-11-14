@@ -11,7 +11,7 @@ import styles from "./RanchJournal.module.css";
 import { RanchReview } from "./RanchReview";
 
 export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => void; storyOnly?: boolean }) {
-  const { currentSave: save, goToMarket, goToGuildHall } = useGameContext();
+  const { currentSave: save, goToMarket, goToGuildHall, goToSupplyDepot, goToEggAtelier } = useGameContext();
   const [selectedId, setSelectedId] = useState<string>();
   if (!save) return null;
 
@@ -20,12 +20,14 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
   const sources = [
     { npc: "tamsin_vale", category: "Hearth requests", portrait: artRoot + "tamsin.webp", visit: goToMarket },
     { npc: "mara_vell", category: "Guild requests", portrait: TOWN_NPCS.mara_vell.portraitPath, visit: goToGuildHall },
+    { npc: "pella_mosswick", category: "Supply Depot requests", portrait: TOWN_NPCS.pella_mosswick.portraitPath, visit: goToSupplyDepot },
+    { npc: "selene_virell", category: "Egg Atelier requests", portrait: TOWN_NPCS.selene_virell.portraitPath, visit: goToEggAtelier },
   ] as const;
   const requests = storyOnly ? [] : sources.flatMap(source =>
     getNpcQuestChain(save, source.npc).filter(quest => quest.accepted).map(quest => ({
       ...quest, ...source,
       id: `${source.npc}-request-${quest.index}`,
-      art: source.npc === "mara_vell" ? artRoot + "topic-request.webp" : artRoot + (quest.index === 0 ? "journal-home.webp" : "journal-rescue.webp"),
+      art: source.npc === "tamsin_vale" ? artRoot + (quest.index === 0 ? "journal-home.webp" : "journal-rescue.webp") : artRoot + "topic-request.webp",
     })),
   ).sort((a, b) => Number(b.ready) - Number(a.ready) || Number(a.claimed) - Number(b.claimed));
   const stories = getChapterOneStoryLog(save);
@@ -77,7 +79,7 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
             <nav aria-label="Town requests">
               {requests.map(item => (
                 <button key={item.id} type="button" aria-current={item.id === quest.id ? "page" : undefined} onClick={() => setSelectedId(item.id)}>
-                  <img src={item.art} data-guild={item.npc === "mara_vell"} alt="" />
+                  <img src={item.art} data-icon={item.npc !== "tamsin_vale"} alt="" />
                   <span>{item.title}{item.ready && <small>Reward ready</small>}</span>
                 </button>
               ))}
@@ -86,7 +88,8 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
           </aside>
           <article className={styles.record} aria-labelledby="hearth-request-title">
             <div className={styles.steward}>
-              <img key={quest.npc} src={quest.portrait} alt="" onError={event => { event.currentTarget.src = artRoot + "topic-request.webp"; }} />
+              <img key={quest.npc} src={quest.portrait} alt="" onError={event => { const fallback = artRoot + "topic-request.webp";
+                if (event.currentTarget.getAttribute("src") !== fallback) event.currentTarget.src = fallback; }} />
               <p><em>{npc.title}</em><strong>{npc.name}</strong></p>
             </div>
             <h2 id="hearth-request-title">{quest.title}</h2>
@@ -95,11 +98,11 @@ export function RanchJournal({ onClose, storyOnly = false }: { onClose: () => vo
               <strong>{quest.claimed ? "Reward claimed" : quest.ready ? "Ready to claim" : "In progress"}</strong> · {quest.current}/{quest.target}
             </p>
             <div className={styles.objective}>
-              <img src={quest.art} data-guild={quest.npc === "mara_vell"} alt="" />
+              <img src={quest.art} data-icon={quest.npc !== "tamsin_vale"} alt="" />
               <p>{quest.requirement}</p>
             </div>
             <p className={styles.reward}><img src="/images/ui/adoption-gallery/ledger-coins.webp" alt="" />{reward}</p>
-            {quest.ready && <button type="button" className={styles.return} onClick={() => { onClose(); quest.visit(); }}>Return to {npc.name.split(" ")[0]}</button>}
+            {quest.ready && <button type="button" className={styles.return} onClick={() => { onClose(); quest.visit(); }}>Return to {quest.npc === "selene_virell" ? "Selene" : npc.name.split(" ")[0]}</button>}
             {quest.claimed && <img className={styles.seal} src="/images/ui/adoption-gallery/ledger-seal.webp" alt="" />}
           </article>
         </div>

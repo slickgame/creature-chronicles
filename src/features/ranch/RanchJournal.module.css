@@ -118,7 +118,7 @@
 }
 .index nav { max-height: clamp(90px, 29dvh, 278px); overflow: auto; padding: 3px; }
 .index nav small { display: block; margin-top: 3px; font-size: .7em; }
-.index nav img[data-guild="true"], .objective img[data-guild="true"] { object-fit: contain; }
+.index nav img[data-icon="true"], .objective img[data-icon="true"] { object-fit: contain; }
 @media (max-width: 620px) and (orientation: portrait) {
  .index nav { display: none; }
 }
