@@ -4,12 +4,11 @@ import { gameplayArt } from "@/data/creatureGameplayArt";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ensureCurrentMarketState, getMarketListingPreview, getMarketListingPrice, getMarketRerollCost } from "@/data/market";
 import { getVariantDefinition } from "@/data/creatures";
-import { getNpcNextUnlock, getNpcTrustRecord, getNpcTrustSummary, getTamsinSpecialPlacementBonus, getTamsinAdoptionFeeMultiplier } from "@/data/townNpcs";
+import { getNextTrustThreshold, getNpcNextUnlock, getNpcTrustRecord, getTamsinSpecialPlacementBonus, getTamsinAdoptionFeeMultiplier } from "@/data/townNpcs";
 import { getTotalTownUpgradeTiers, getTownUpgradeEffects } from "@/data/upgrades";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import { GameDialog } from "@/features/ui/GameDialog";
-import { TrustLeaves } from "@/features/ui/IllustratedIcon";
 import { RanchIcon } from "@/features/ui/RanchIcon";
 import { useGameContext } from "@/state/GameProvider";
 import type { CreatureRecord } from "@/types/creature";
@@ -113,6 +112,7 @@ export function MarketScreen() {
   const pages = Math.max(1, Math.ceil(market.listings.length / pageSize));
   const currentPage = Math.min(page, pages - 1);
   const trust = getNpcTrustRecord(save, "tamsin_vale");
+  const nextTrustThreshold = getNextTrustThreshold(trust.points);
   const effects = getTownUpgradeEffects(save);
   const rerollCost = getMarketRerollCost(save);
   const quoteValid = Boolean(selected && quote?.listingId === selected.listingId && quote.price === price);
@@ -241,7 +241,7 @@ export function MarketScreen() {
               </>
             ) : (
               <>
-                <h3 tabIndex={-1} ref={(node) => { node?.focus({ preventScroll: true }); }}>{adoptionTopics[talkTopic].title}</h3>
+                <h3 tabIndex={-1} data-initial-focus ref={(node) => { node?.focus({ preventScroll: true }); }}>{adoptionTopics[talkTopic].title}</h3>
                 <p>{adoptionTopics[talkTopic].answer}</p>
                 {talkTopic === 2 && <p>{trust.level >= 4 ? "I have a few contacts who only call when a placement is delicate. Keep showing me you can handle that responsibility, and I will let those cases reach your ranch first." : trust.level >= 2 ? "You are building a reputation here. The creatures you adopt are settling well enough that I can argue for better fees on your behalf." : "Start with steady care. I watch what happens after the adoption, not just whether you can pay the fee."}</p>}
                 <div className={styles.talkFollowup}>
@@ -257,6 +257,44 @@ export function MarketScreen() {
         </footer>
       </GameDialog>
     ) : null}
-    {popup === "trust" ? <GameDialog title="Trust & Welfare Ledger" onClose={() => setPopup(null)}><TrustLeaves level={trust.level} /><h3>{getNpcTrustSummary(save, "tamsin_vale")}</h3><p>Next: {getNpcNextUnlock(save, "tamsin_vale")}</p><dl className={styles.report}><div><dt>Hearth level</dt><dd>{getTotalTownUpgradeTiers(save, "market") + 1}</dd></div><div><dt>Board slots</dt><dd>{effects.marketListingCount}</dd></div><div><dt>Adoption discount</dt><dd>{Math.round((1 - getTamsinAdoptionFeeMultiplier(save)) * 100)}%</dd></div><div><dt>Special placement chance</dt><dd>{((effects.marketVariantChance + getTamsinSpecialPlacementBonus(save)) * 100).toFixed(2)}%</dd></div><div><dt>Refresh cost</dt><dd>{rerollCost} Gold</dd></div></dl><p>Successful adoptions grant 5 Trust; refreshing arrivals grants 1. Trust and town upgrades can improve fees, refresh costs and special placement chances.</p><p>Stat numbers and their letter grades are shown together. Full Profile contains the expanded stats, abilities and care details.</p></GameDialog> : null}
+    {popup === "trust" && (
+      <GameDialog title="Trust & Welfare Ledger" dialogClassName={`${styles.talkDialog} ${styles.trustDialog}`} onClose={() => setPopup("talk")}>
+        <div className={styles.trustPaper}>
+          <section aria-labelledby="current-trust">
+            <div className={styles.trustHeading}>
+              <h3 id="current-trust">Trust Level {trust.level}</h3>
+              <span className={styles.trustLeaves} aria-hidden="true">{Array.from({length: 5}, (_, index) => <img key={index} data-earned={index < trust.level} src="/images/ui/adoption-gallery/ledger-sprig.webp" alt="" />)}</span>
+            </div>
+            {nextTrustThreshold !== null ? (
+              <>
+                <progress aria-label="Trust points toward next level" value={trust.points} max={nextTrustThreshold} />
+                <p>{trust.points} / {nextTrustThreshold} Trust points</p>
+                <p><strong>Next unlock</strong> · {getNpcNextUnlock(save, "tamsin_vale")}</p>
+              </>
+            ) : <p>Maximum trust reached · {trust.points} Trust points</p>}
+          </section>
+          <section aria-labelledby="adoption-benefits">
+            <h3 id="adoption-benefits">Adoption Benefits</h3>
+            <dl className={styles.trustBenefits}>
+              <div><dt>Hearth level</dt><dd>{getTotalTownUpgradeTiers(save, "market") + 1}</dd></div>
+              <div><dt>Board slots</dt><dd>{effects.marketListingCount}</dd></div>
+              <div><dt>Adoption discount</dt><dd>{Math.round((1 - getTamsinAdoptionFeeMultiplier(save)) * 100)}%</dd></div>
+              <div><dt>Special placement chance</dt><dd>{((effects.marketVariantChance + getTamsinSpecialPlacementBonus(save)) * 100).toFixed(2)}%</dd></div>
+              <div><dt>Refresh cost</dt><dd>{rerollCost} Gold</dd></div>
+            </dl>
+          </section>
+          <section aria-labelledby="earn-trust">
+            <h3 id="earn-trust">How to Earn Trust</h3>
+            <dl className={styles.trustBenefits}>
+              <div><dt>Complete an adoption</dt><dd>+5 Trust</dd></div>
+              <div><dt>Refresh arrivals</dt><dd>+1 Trust</dd></div>
+            </dl>
+          </section>
+        </div>
+        <footer className={styles.talkFooter}>
+          <button type="button" data-initial-focus onClick={() => setPopup("talk")}>Back to Tamsin</button>
+        </footer>
+      </GameDialog>
+    )}
   </main>;
 }
