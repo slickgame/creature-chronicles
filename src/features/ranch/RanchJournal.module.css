@@ -1,0 +1,118 @@
+.desk {
+ height: 100%;
+ display: grid;
+ place-items: center;
+ overflow: auto;
+ color: #382915;
+ background: #3f2717 url('/images/ui/adoption-gallery/hearth.webp') center / cover;
+ font-family: Georgia, serif;
+}
+.book {
+ width: min(1200px, 97vw, 155dvh);
+ aspect-ratio: 1.62;
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ gap: 5%;
+ padding: clamp(28px, 4dvh, 54px) clamp(28px, 6vw, 100px);
+ background: #e7cda0 url('/images/ui/adoption-gallery/journal-book.webp') center / 100% 100% no-repeat;
+}
+.index,.record { min-width: 0; }
+.index { padding-right: 6%; }
+.index > button,.return {
+ border: 0;
+ color: #fff0cc;
+ background: url('/images/ui/adoption-gallery/talk-button.webp') center / 100% 100%;
+ font-family: inherit;
+}
+.index h1 { text-align: center; color: #24371e; margin: .25em 0; font-size: clamp(23px, 3.3vw, 53px); }
+.index h2,.status {
+ background: url('/images/ui/adoption-gallery/talk-button.webp') center / 100% 100%;
+ color: #fff2d2;
+ padding: 8px 14px;
+ text-align: center;
+ font-size: clamp(15px, 1.8vw, 24px);
+}
+.index h2 img,.reward img { width: 1.5em; vertical-align: middle; margin-right: .4em; }
+.index nav { display: grid; gap: 8px; margin-bottom: 10px; }
+.index nav button {
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ width: 100%;
+ text-align: left;
+ color: #392b17;
+ font: bold clamp(15px, 1.9vw, 25px)/1.15 Georgia,serif;
+ background: #fff3d369;
+ border: 3px double #9f824b;
+ border-radius: 8px;
+ padding: 4px;
+}
+.index nav button[aria-current] { background: linear-gradient(110deg,#344627,#5f7038); color: #fff0cb; border-color: #fff0a3; box-shadow: 0 0 5px #ac7e34; }
+.index nav img { width: 29%; aspect-ratio: 1.4; object-fit: cover; border-radius: 4px; }
+.index label { display: grid; gap: 2px; font-size: .9rem; }
+.index select { width: 100%; color: #382915; background: #f3e1bf; font-family: inherit; }
+.record { display: flex; flex-direction: column; align-items: center; gap: clamp(4px, 1.2dvh, 12px); text-align: center; }
+.record h2 { font-size: clamp(24px,3.8vw,54px); margin: 0; line-height: 1.05; }
+.record p { margin: 0; line-height: 1.2; }
+.steward {
+ width: 100%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 5%;
+ border-bottom: 1px solid #8b6b4380;
+ background: radial-gradient(ellipse at bottom,#85905550,transparent 65%);
+}
+.steward img { width: 34%; height: clamp(42px,16dvh,140px); object-fit: contain; object-position: bottom; }
+.steward strong { display: block; font-size: clamp(20px, 2.7vw, 38px); }
+.status span { margin-right: .45em; }
+.status[data-status="ready"] { filter: brightness(1.25); }
+.objective,.reward {
+ width: 100%;
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ border: 3px double #ad8a53;
+ border-radius: 7px;
+ background: #f8e6bf85;
+ padding: 5px;
+ font-size: clamp(14px, 1.65vw, 22px);
+ font-weight: bold;
+}
+.objective img { width: 48%; height: clamp(48px, 15dvh, 144px); object-fit: cover; border-radius: 4px; }
+.objective p { flex: 1; }
+.reward { justify-content: center; color: #294123; padding: 5px; }
+.reward img { margin: 0; }
+.return { min-width: 55%; }
+.seal { width: clamp(34px,7dvh,72px); height: auto; }
+@media (max-width: 620px) and (orientation: portrait) {
+ .desk { place-items: start center; }
+ .book { aspect-ratio: auto; width: min(100%,490px); min-height: 100%; display: block; padding: 8px 12px 15px; background: #253b25; }
+ .index { padding: 0; position: relative; color: #fff0cb; }
+ .index > button { position: absolute; top: 0; left: 0; min-height: 32px; padding: 4px 6px; }
+ .index h1 { color: inherit; margin: 0 0 5px; padding-left: 40px; }
+ .index h2 { margin: 0; padding: 4px 8px; }
+ .index nav { display: none; }
+ .index label { margin: 4px 0 7px; grid-template-columns: auto 1fr; gap: 8px; align-items: center; }
+ .index select { min-height: 30px; min-width: 0; }
+ .record { background: #efdbb5; border: 3px double #a88450; border-radius: 8px; padding: 8px 10px; gap: 6px; }
+ .steward img { height: clamp(48px, 11dvh, 95px); }
+ .objective { display: grid; gap: 4px; }
+ .objective img { width: 100%; height: clamp(58px,14dvh,140px); }
+}
+@media (max-height: 480px) and (orientation: landscape) {
+ .book { width: min(96vw, 190dvh); aspect-ratio: auto; padding: 14px 6%; }
+ .index h1,.record h2 { font-size: 23px; }
+ .index h2 { margin: 5px 0; }
+ .index nav img { max-height: 37px; }
+ .index select,.index > button,.return { min-height: 30px; padding: 4px 7px; }
+ .objective img { height: 43px; }
+ .status { padding-block: 5px; }
+}
+@media (min-width: 800px) and (min-height: 620px) {
+ .book { padding-block: clamp(42px, 6dvh, 75px); }
+ .record { gap: clamp(10px, 1.7dvh, 19px); }
+ .steward img { width: 42%; height: clamp(112px, 20dvh, 178px); }
+ .objective img { height: clamp(120px, 20dvh, 175px); }
+ .index nav button { padding: 6px; }
+}
