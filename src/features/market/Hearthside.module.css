@@ -326,7 +326,7 @@ dialog.adoptionDialog {
  overflow:hidden; border:1px solid #ba9859; border-radius:8px;
  background:linear-gradient(#183d2b35,#0c231ad9),url('/images/ui/adoption-gallery/hearth.webp') center/cover;
 }
-.adoptionSpread img { width:100%; height:100%; min-height:0; object-fit:contain; object-position:center bottom; }
+.adoptionSpread figure img { width:100%; height:100%; min-height:0; object-fit:contain; object-position:center bottom; }
 .adoptionSpread img[hidden] { display:none; }
 .adoptionSpread figcaption { grid-row:2; padding:6px; background:#112820; text-align:center; color:#ffe5ab; font-size:clamp(17px,3vw,26px); font-weight:bold; }
 .adoptionSpread h3 { margin:0 0 7px; color:#ffe5ab; }
@@ -429,4 +429,66 @@ dialog.adoptionDialog {
  .adoptionDialog > header h2 { font-size:19px; }
  .adoptionDialog > header { margin-bottom:6px; grid-template-columns:30px minmax(0,1fr) 30px; }
  .adoptionDialog > header button { width:30px; min-height:30px; }
+}
+
+dialog.adoptionDialog {
+ width:min(800px,calc(100vw - 20px));
+ --sprig:url('/images/ui/adoption-gallery/ledger-sprig.webp');
+ background:
+  var(--sprig) left 4px bottom 2px / 56px auto no-repeat,
+  var(--sprig) right 4px bottom 2px / 56px auto no-repeat,
+  #14271b;
+}
+.adoptionDialog::backdrop { background:#16160988; backdrop-filter:blur(1px); }
+.adoptionDialog > header h2 {
+ font-size:clamp(22px,4.5vw,40px); color:#ffebbd;
+ text-shadow:0 2px 3px #050e08; text-wrap:balance;
+}
+.adoptionDialog > header h2::before,.adoptionDialog > header h2::after {
+ content:""; display:inline-block; width:clamp(15px,5vw,45px); height:.7em; margin-inline:8px;
+ background:var(--sprig) center/contain no-repeat;
+}
+.adoptionDialog > header h2::after { transform:scaleX(-1); }
+.adoptionSpread {
+ grid-template-columns:minmax(0,0.9fr) minmax(0,1.35fr);
+ padding:clamp(12px,2.7vw,26px); box-shadow:0 0 0 4px #9e895041;
+}
+.adoptionSpread figure { border:4px double #92713e; min-height:clamp(160px,40dvh,360px); }
+.adoptionSpread .ledgerDetails h3 {
+ padding-bottom:7px; border-bottom:1px solid #8a754d;
+ font-size:clamp(24px,4.7vw,44px);
+}
+.adoptionSpread .ledgerHeading { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; }
+.ledgerStamp {
+ width:clamp(62px,13vw,112px); aspect-ratio:1; display:grid; place-items:center;
+ padding:30% 0 0; border:0; border-radius:0; color:#593613; letter-spacing:.025em;
+ background:url('/images/ui/adoption-gallery/ledger-seal.webp') center/contain no-repeat;
+ transform:rotate(-9deg); font-size:clamp(8px,1.6vw,12px);
+}
+.ledgerIcon { width:24px; height:24px; object-fit:contain; flex:none; }
+.adoptionSpread .requirements dt { display:flex; align-items:center; gap:6px; }
+.slotMarks > span { width:18px; height:18px; filter:none; }
+.slotMarks img { width:100%; height:100%; object-fit:contain; }
+.adoptionDialog footer button {
+ font:700 clamp(15px,2.5vw,23px)/1.12 Georgia,serif; min-height:44px;
+ padding-inline:20px; color:#fff0cc; background:linear-gradient(#3d4a32,#242c1e); border:3px double #cba65b;
+}
+.adoptionDialog footer button:last-child { border:0; padding-inline:25px; }
+@media(max-width:560px) and (orientation:portrait) {
+ .adoptionDialog > header h2 { font-size:clamp(18px,5.3vw,24px); }
+ .adoptionDialog > header h2::before,.adoptionDialog > header h2::after { display:none; }
+ .adoptionSpread { grid-template-columns:1fr; padding:9px; }
+ .adoptionSpread figure { min-height:0; height:clamp(90px,22dvh,145px); }
+ .ledgerStamp { width:59px; padding-top:21px; }
+ .ledgerIcon { width:16px; height:17px; }
+ .adoptionDialog footer button { min-height:38px; padding-inline:12px; }
+ .adoptionDialog footer button:last-child { padding-inline:15px; }
+}
+@media(max-height:430px) and (orientation:landscape) {
+ .adoptionSpread { padding:8px; }
+ .adoptionSpread figure { min-height:110px; }
+ .adoptionDialog > header h2 { font-size:23px; }
+ .ledgerStamp { width:55px; padding-top:19px; }
+ .adoptionSpread .ledgerDetails h3 { font-size:22px; padding-bottom:3px; }
+ .ledgerIcon { height:16px; width:16px; }
 }

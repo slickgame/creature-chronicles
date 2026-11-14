@@ -43,9 +43,9 @@ function ArrivalArt({listing, portrait=false}:{listing:MarketListing;portrait?:b
   }}/>;
 }
 
-const habitatSymbols: Record<MarketListing["family"], string> = {
-  equine: "∩", canine: "🐾", feline: "🐱", lapine: "🐇", bovine: "🐮",
-};
+function LedgerIcon({name}: {name: "coins" | "purse" | "fence"}) {
+  return <img className={styles.ledgerIcon} src={`/images/ui/adoption-gallery/ledger-${name}.webp`} alt="" />;
+}
 
 function HabitatOccupancy({family, occupied, capacity, pending = false}: {
   family: MarketListing["family"]; occupied: number; capacity: number; pending?: boolean;
@@ -55,7 +55,7 @@ function HabitatOccupancy({family, occupied, capacity, pending = false}: {
     <span className={styles.slotMarks} aria-hidden="true">
       {Array.from({length: visibleSlots}, (_, index) => (
         <span key={index} data-slot={index < occupied ? "filled" : pending && index === occupied ? "pending" : "empty"}>
-          {family === "equine" ? <i /> : habitatSymbols[family]}
+          <img src={`/images/ui/adoption-gallery/ledger-${family}.webp`} alt="" />
         </span>
       ))}
       {capacity > visibleSlots && <small>+{capacity - visibleSlots}</small>}
@@ -167,8 +167,8 @@ export function MarketScreen() {
           <div className={styles.galleryHero}><ArrivalArt listing={selected} portrait /><div><h2>{selected.displayName}</h2><small>{selected.rarity} · {selected.family}</small></div></div>
           <dl className={styles.requirements}>
             <div><dt>Required habitat</dt><dd>{habitat?.name ?? "No matching habitat"}</dd></div>
-            <div><dt>Habitat capacity</dt><dd>{habitat && `${habitat.creatureIds.length} / ${habitat.capacity} occupied · `}{status}</dd></div>
-            <div><dt>Adoption fee</dt><dd>{price.toLocaleString()} Gold</dd></div>
+            <div><dt><LedgerIcon name="fence" />Habitat capacity</dt><dd>{habitat && `${habitat.creatureIds.length} / ${habitat.capacity} occupied · `}{status}</dd></div>
+            <div><dt><LedgerIcon name="coins" />Adoption fee</dt><dd>{price.toLocaleString()} Gold</dd></div>
           </dl>
           {shortage > 0 && !sold && <p className={styles.warning}>Need {shortage.toLocaleString()} more Gold</p>}
           {price < selected.price && !sold && <small>Trust discount from {selected.price.toLocaleString()} Gold</small>}
@@ -182,9 +182,9 @@ export function MarketScreen() {
       <div className={styles.adoptionSpread}>
         <figure><ArrivalArt listing={selected} portrait /></figure>
         <div className={styles.ledgerDetails}><h3>{selected.displayName}</h3><dl className={styles.requirements}>
-          <div><dt>Adoption fee</dt><dd>{price.toLocaleString()} Gold</dd></div>
-          <div><dt>{habitat?.name ?? "Required habitat"}</dt><dd>{habitat ? <HabitatOccupancy family={selected.family} occupied={habitat.creatureIds.length} capacity={habitat.capacity} pending={canAdopt} /> : "Unavailable"}</dd></div>
-          <div><dt>Gold after adoption</dt><dd>{(save.currencies.gold - price).toLocaleString()} Gold</dd></div>
+          <div><dt><LedgerIcon name="coins" />Adoption fee</dt><dd>{price.toLocaleString()} Gold</dd></div>
+          <div><dt><LedgerIcon name="fence" />{habitat?.name ?? "Required habitat"}</dt><dd>{habitat ? <HabitatOccupancy family={selected.family} occupied={habitat.creatureIds.length} capacity={habitat.capacity} pending={canAdopt} /> : "Unavailable"}</dd></div>
+          <div><dt><LedgerIcon name="purse" />Gold after adoption</dt><dd>{(save.currencies.gold - price).toLocaleString()} Gold</dd></div>
         </dl>
         {!quoteValid ? <p>The listing or fee changed. Close this window and review it again.</p> : !canAdopt ? <p>{shortage ? `Need ${shortage} more Gold. ` : ""}{status}</p> : null}</div>
       </div>
@@ -194,9 +194,9 @@ export function MarketScreen() {
       <div className={styles.adoptionSpread}>
         <figure><ArrivalArt listing={selected} portrait /></figure>
         <div className={styles.ledgerDetails}><div className={styles.ledgerHeading}><h3>{selected.displayName}</h3><span className={styles.ledgerStamp}>Completed</span></div><p role="status" className={styles.settled}>{habitat ? `Settled in ${habitat.name}` : message}</p><dl className={styles.requirements}>
-          <div><dt>Adoption fee paid</dt><dd>{quote?.price.toLocaleString()} Gold</dd></div>
-          {habitat && <div><dt>Habitat capacity</dt><dd><HabitatOccupancy family={selected.family} occupied={habitat.creatureIds.length} capacity={habitat.capacity} /></dd></div>}
-          <div><dt>Gold balance</dt><dd>{save.currencies.gold.toLocaleString()} Gold</dd></div>
+          <div><dt><LedgerIcon name="coins" />Adoption fee paid</dt><dd>{quote?.price.toLocaleString()} Gold</dd></div>
+          {habitat && <div><dt><LedgerIcon name="fence" />Habitat capacity</dt><dd><HabitatOccupancy family={selected.family} occupied={habitat.creatureIds.length} capacity={habitat.capacity} /></dd></div>}
+          <div><dt><LedgerIcon name="purse" />Gold balance</dt><dd>{save.currencies.gold.toLocaleString()} Gold</dd></div>
         </dl></div>
       </div>
       <footer><button type="button" onClick={() => setPopup(null)}>Continue</button></footer>
