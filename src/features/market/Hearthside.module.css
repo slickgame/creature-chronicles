@@ -742,3 +742,11 @@ dialog.trustDialog { width: min(690px, calc(100vw - 24px)); }
 .trustLeaves { display: flex; gap: 2px; flex-shrink: 0; }
 .trustLeaves img { width: clamp(14px, 3vw, 24px); height: 18px; object-fit: contain; }
 .trustLeaves img[data-earned="false"] { opacity: .25; }
+.talkPaper h4 { margin: 7px 0 0; font-size: 1.08em; }
+.talkPaper .talkFollowup { margin-top: 8px; }
+.trustPaper details { margin-top: 7px; }
+.trustPaper summary { cursor: pointer; font-weight: bold; }
+.firstDayTip { margin: 9px 0 0; font-size: clamp(12px, 1.45vw, 16px); text-align: center; }
+@media (max-height: 480px) and (orientation: landscape) {
+ .talkPaper { max-height: calc(100dvh - 106px); overflow-y: auto; justify-content: safe center; }
+}

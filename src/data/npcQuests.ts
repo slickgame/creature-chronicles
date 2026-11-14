@@ -3,10 +3,14 @@ import type { GameSave } from "@/types/save";
 import { grantNpcTrust } from "./townNpcs";
 import { safeMissionCount } from "./guildCommissions";
 
-export type QuestNpc = "mara_vell" | "pella_mosswick" | "selene_virell";
-type QuestObjective = "guild" | "chores" | "delivery" | "reserve" | "breeding" | "appraisal" | "hatch";
+export type QuestNpc = "tamsin_vale" | "mara_vell" | "pella_mosswick" | "selene_virell";
+type QuestObjective = "adoption" | "guild" | "chores" | "delivery" | "reserve" | "breeding" | "appraisal" | "hatch";
 export type NpcQuest = { title: string; dialogue: string; completion: string; objective: QuestObjective; target: number; gold: number; gp: number; trust: number };
 const QUESTS: Record<QuestNpc, NpcQuest[]> = {
+  tamsin_vale: [
+    { title: "A Home Ready", dialogue: "Make room in a matching habitat, then welcome a companion from the Hearth. Come tell me where they settled.", completion: "A place of their own makes all the difference. Thank you for getting their home ready.", objective: "adoption", target: 1, gold: 100, gp: 0, trust: 10 },
+    { title: "Rescue Network", dialogue: "The Guild supplies the waystations I work with. Complete a Guild delivery and I’ll record your help with our rescue network.", completion: "The waystations can keep their doors open because people like you show up.", objective: "delivery", target: 1, gold: 0, gp: 5, trust: 15 },
+  ],
   selene_virell: [
     { title: "A Thoughtful Pairing", dialogue: "Start with the parents, not the result. Review their talents and the pairing requirements in the Breeding Pen, then complete one valid session. An unsuccessful result is still a useful observation.", completion: "Good records begin with honest observations. A missed chance is information, not a wasted lesson.", objective: "breeding", target: 1, gold: 40, gp: 5, trust: 10 },
     { title: "Read the Nursery Notes", dialogue: "Once you have an egg, bring its record to the Atelier. Open its free appraisal and record your review. Check the timer and lineage before deciding whether it needs any paid care.", completion: "Now you know what you are waiting for. Let incubation finish, and make room in the matching habitat before hatching.", objective: "appraisal", target: 1, gold: 75, gp: 8, trust: 15 },
@@ -25,11 +29,13 @@ const QUESTS: Record<QuestNpc, NpcQuest[]> = {
 };
 export function npcQuestFlag(npc: QuestNpc, index: number, field: string) { return `npcQuest_${npc}_${index}_${field}`; }
 export const NPC_QUEST_PERKS: Record<QuestNpc, string> = {
+  tamsin_vale: "Trust improves adoption fees, refresh costs, and special placement chances.",
   mara_vell: "10% cheaper Guild board rerolls.",
   pella_mosswick: "10% cheaper supplies. A better Trust discount still takes priority.",
   selene_virell: "10% off Atelier service Gold costs after Trust and upgrade discounts. Kit costs and success chances stay the same.",
 };
 function count(save: GameSave, objective: QuestObjective) {
+  if (objective === "adoption") return safeMissionCount(save.flags.tamsinAdoptions);
   if (objective === "breeding") return safeMissionCount(save.flags.seleneBreedingSessions);
   if (objective === "appraisal") return safeMissionCount(save.flags.seleneAppraisals);
   if (objective === "hatch") return safeMissionCount(save.flags.m9TotalHatched);
@@ -44,7 +50,7 @@ export function getNpcQuestChain(save: GameSave, npc: QuestNpc) {
     const accepted = save.flags[npcQuestFlag(npc, index, "accepted")] === true;
     const locked = index > 0 && save.flags[npcQuestFlag(npc, index - 1, "claimed")] !== true;
     const current = claimed ? quest.target : accepted ? quest.objective === "reserve" ? count(save, quest.objective) : Math.max(0, count(save, quest.objective) - safeMissionCount(save.flags[npcQuestFlag(npc, index, "baseline")])) : 0;
-    const requirement = quest.objective === "breeding" ? "Complete 1 valid breeding session after acceptance. Success or failure counts; canceled or blocked actions do not." : quest.objective === "appraisal" ? "Open an unhatched egg's Appraisal at the Egg Atelier, then select Record Appraisal for Selene. Basic appraisal is free; no upgrade or service purchase is required." : quest.objective === "hatch" ? "Hatch 1 egg at the Nursery after acceptance. Wait until it is ready and leave room in its habitat. Viewing egg details does not count; the Hatch action welcomes the creature." : quest.objective === "reserve" ? "Keep 10 Balanced rations and 4 Wood in stock; nothing is consumed." : quest.objective === "guild" ? `Complete ${quest.target} Guild ${quest.target === 1 ? "request" : "requests"} after acceptance.` : quest.objective === "delivery" ? `Complete ${quest.target} Guild deliveries after acceptance.` : `Finish ${quest.target} instant farm work actions after acceptance. Blocked actions do not count.`;
+    const requirement = quest.objective === "adoption" ? "Adopt one companion into a matching habitat after accepting." : quest.objective === "breeding" ? "Complete 1 valid breeding session after acceptance. Success or failure counts; canceled or blocked actions do not." : quest.objective === "appraisal" ? "Open an unhatched egg's Appraisal at the Egg Atelier, then select Record Appraisal for Selene. Basic appraisal is free; no upgrade or service purchase is required." : quest.objective === "hatch" ? "Hatch 1 egg at the Nursery after acceptance. Wait until it is ready and leave room in its habitat. Viewing egg details does not count; the Hatch action welcomes the creature." : quest.objective === "reserve" ? "Keep 10 Balanced rations and 4 Wood in stock; nothing is consumed." : quest.objective === "guild" ? `Complete ${quest.target} Guild ${quest.target === 1 ? "request" : "requests"} after acceptance.` : quest.objective === "delivery" ? `Complete ${quest.target} Guild deliveries after acceptance.` : `Finish ${quest.target} instant farm work actions after acceptance. Blocked actions do not count.`;
     return { ...quest, index, claimed, accepted, locked, current: Math.min(current, quest.target), ready: accepted && !claimed && !locked && current >= quest.target, requirement };
   });
 }
@@ -57,7 +63,8 @@ export function claimNpcQuest(save: GameSave, npc: QuestNpc, index: number) {
   const quest = getNpcQuestChain(save, npc)[index];
   if (!quest?.ready) return { save, ok: false, message: "Finish this quest's requirements before claiming." };
   const rewarded = grantNpcTrust({ ...save, currencies: { ...save.currencies, gold: save.currencies.gold + quest.gold, guildPoints: save.currencies.guildPoints + quest.gp }, flags: { ...save.flags, [npcQuestFlag(npc, index, "claimed")]: true } }, npc, quest.trust);
-  return { ok: true, save: rewarded, message: `${quest.completion} Received ${quest.gold} Gold, ${quest.gp} GP and ${quest.trust} Trust.` };
+  const rewards = [quest.gold && `${quest.gold} Gold`, quest.gp && `${quest.gp} GP`, quest.trust && `${quest.trust} Trust`].filter(Boolean);
+  return { ok: true, save: rewarded, message: `${quest.completion} Received ${rewards.join(", ")}.` };
 }
 
 /** A deliberate review action for the active appraisal lesson; never consumes an egg. */

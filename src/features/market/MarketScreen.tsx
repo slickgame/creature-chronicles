@@ -16,16 +16,11 @@ import type { CreatureId, HabitatId } from "@/types/ids";
 import type { MarketListing } from "@/types/market";
 import type { GameSave } from "@/types/save";
 import ui from "@/features/ui/InteriorShell.module.css";
+import { adoptionAdvice, tamsinTopics, TamsinHearthChat, TamsinRequests, TamsinVisits } from "./TamsinConversation";
 import styles from "./Hearthside.module.css";
 
 type Popup = "talk" | "trust" | "profile" | "adopt" | "refresh" | "result" | "welcome" | null;
 type Quote = { listingId: string; price: number } | null;
-const adoptionTopics = [
-  { title: "Finding the right habitat", icon: "ledger-fence", answer: "Check the matching habitat on the arrival’s card. Your ranch needs that habitat unlocked and at least one open space before I can place the companion with you." },
-  { title: "Making room", icon: "talk-gate", answer: "Look at the habitat capacity on the arrival’s card. If it’s full, check the habitat upgrades at the Ranch Office. Then come back and check the available space again." },
-  { title: "Preparing for adoption", icon: "ledger-purse", answer: "Review the placement before you commit. I’ll show you the habitat, how many spaces will be occupied, the adoption fee, and how much Gold you’ll have left. Once you confirm, your companion moves straight into the matching habitat." },
-] as const;
-
 function createMarketPreviewCreature(save: GameSave, listing: MarketListing): CreatureRecord {
   const variant = getVariantDefinition(listing.variantId);
   const preview = getMarketListingPreview(save, listing);
@@ -79,7 +74,9 @@ export function MarketScreen() {
   const [message, setMessage] = useState("");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(1);
-  const lastTopicButton = useRef<number | null>(null);
+  const [talkMenu, setTalkMenu] = useState<number | null>(null);
+  const talkHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { talkHeading.current?.focus({ preventScroll: true }); }, [talkMenu, talkTopic, popup]);
   const dockRef = useRef<HTMLDivElement>(null);
   const sizeRef = useRef(1);
   const actionLock = useRef(false);
@@ -147,7 +144,7 @@ export function MarketScreen() {
       <aside className={styles.gallerySteward} aria-label="Adoption steward">
         <img src="/images/ui/adoption-gallery/tamsin.webp" alt="" />
         <div><strong>Tamsin Vale</strong><small>Adoption Steward · Trust {trust.level}</small></div>
-        <button onClick={() => { setTalkTopic(null); setPopup("talk"); }} aria-label="Talk to Tamsin">Talk</button>
+        <button onClick={() => { setTalkMenu(null); setTalkTopic(null); setPopup("talk"); }} aria-label="Talk to Tamsin">Talk</button>
         <button className={styles.trustButton} onClick={() => setPopup("trust")}>Trust Ledger</button>
       </aside>
       <div className={styles.balance}><strong>{save.currencies.gold.toLocaleString()} Gold</strong></div>
@@ -207,6 +204,7 @@ export function MarketScreen() {
           <div><dt><LedgerIcon name="purse" />Gold balance</dt><dd>{save.currencies.gold.toLocaleString()} Gold</dd></div>
         </dl></div>
       </div>
+      <p className={styles.firstDayTip}>Tamsin’s first-day tip · Check your new companion’s care needs in their profile and make sure they have food and time to rest.</p>
       <footer><button type="button" onClick={() => setPopup(null)}>Continue</button></footer>
     </GameDialog> : null}
     {popup === "refresh" ? <GameDialog title="Refresh Arrivals" onClose={() => setPopup(null)}><p>Replace the current placement board with new arrivals for <strong>{rerollCost} Gold</strong>. The current listings will be replaced; creatures already adopted stay on your ranch.</p><p>Arrivals also restock automatically each week.</p><p>{save.currencies.gold < rerollCost ? `Need ${rerollCost - save.currencies.gold} more Gold.` : `Balance after fee: ${(save.currencies.gold - rerollCost).toLocaleString()} Gold.`}</p>{!refreshValid ? <p>The board or cost changed. Close this window and review the refresh again.</p> : null}<div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup(null)}>Cancel</button><button type="button" className={ui.primary} disabled={!refreshValid || save.currencies.gold < rerollCost} onClick={refresh}>Confirm Refresh</button></div></GameDialog> : null}
@@ -221,18 +219,15 @@ export function MarketScreen() {
             </div>
             <figcaption><strong>Tamsin Vale</strong><em>Adoption Steward</em></figcaption>
           </figure>
-          <section className={styles.talkPaper} aria-label="Adoption advice">
-            {talkTopic === null ? (
+          <section className={styles.talkPaper} aria-label="Conversation">
+            {talkMenu === null || (talkMenu === 0 && talkTopic === null) ? (
               <>
-                <p className={styles.talkIntro}>Let’s make sure your new companion has a home waiting.</p>
+                {talkMenu === null
+                  ? <p className={styles.talkIntro}>Let’s make sure your new companion has a home waiting.</p>
+                  : <h3 ref={talkHeading} tabIndex={-1} data-initial-focus>Ask about adoption</h3>}
                 <div className={styles.talkTopics}>
-                  {adoptionTopics.map(({title, icon}, index) => (
-                    <button type="button" key={title} ref={(node) => {
-                      if (node && lastTopicButton.current === index) {
-                        node.focus({ preventScroll: true });
-                        lastTopicButton.current = null;
-                      }
-                    }} onClick={() => setTalkTopic(index)}>
+                  {(talkMenu === null ? tamsinTopics : adoptionAdvice).map(({title, icon}, index) => (
+                    <button type="button" key={title} onClick={() => talkMenu === null ? setTalkMenu(index) : setTalkTopic(index)}>
                       <img src={`/images/ui/adoption-gallery/${icon}.webp`} alt="" />
                       <span>{title}</span><span aria-hidden="true">›</span>
                     </button>
@@ -241,14 +236,18 @@ export function MarketScreen() {
               </>
             ) : (
               <>
-                <h3 tabIndex={-1} data-initial-focus ref={(node) => { node?.focus({ preventScroll: true }); }}>{adoptionTopics[talkTopic].title}</h3>
-                <p>{adoptionTopics[talkTopic].answer}</p>
-                {talkTopic === 2 && <p>{trust.level >= 4 ? "I have a few contacts who only call when a placement is delicate. Keep showing me you can handle that responsibility, and I will let those cases reach your ranch first." : trust.level >= 2 ? "You are building a reputation here. The creatures you adopt are settling well enough that I can argue for better fees on your behalf." : "Start with steady care. I watch what happens after the adoption, not just whether you can pay the fee."}</p>}
-                <div className={styles.talkFollowup}>
-                  <button type="button" onClick={() => { lastTopicButton.current = talkTopic; setTalkTopic(null); }}>Back to Topics</button>
-                  {talkTopic === 2 && <button type="button" onClick={() => setPopup("trust")}>Open Trust Ledger</button>}
-                </div>
+                <h3 ref={talkHeading} tabIndex={-1} data-initial-focus>{talkMenu === 0 && talkTopic !== null ? adoptionAdvice[talkTopic].title : tamsinTopics[talkMenu].title}</h3>
+                {talkMenu === 0 && talkTopic !== null && <p>{adoptionAdvice[talkTopic].answer}</p>}
+                {talkMenu === 1 && <TamsinHearthChat save={save} trust={trust.level} />}
+                {talkMenu === 2 && <TamsinRequests save={save} onSave={saveCurrentGame} />}
+                {talkMenu === 3 && <TamsinVisits save={save} trust={trust.level} onSave={saveCurrentGame} />}
               </>
+            )}
+            {talkMenu !== null && (
+              <div className={styles.talkFollowup}>
+                <button type="button" onClick={() => talkTopic === null ? setTalkMenu(null) : setTalkTopic(null)}>Back to Topics</button>
+                {talkMenu === 0 && talkTopic === 2 && <button type="button" onClick={() => setPopup("trust")}>Open Trust Ledger</button>}
+              </div>
             )}
           </section>
         </div>
@@ -282,12 +281,14 @@ export function MarketScreen() {
               <div><dt>Special placement chance</dt><dd>{((effects.marketVariantChance + getTamsinSpecialPlacementBonus(save)) * 100).toFixed(2)}%</dd></div>
               <div><dt>Refresh cost</dt><dd>{rerollCost} Gold</dd></div>
             </dl>
+            <details><summary>What are special placements?</summary><p>Some arrivals are rarer creature variants. Higher Trust and Hearth upgrades can increase the chance of finding one when the board restocks or refreshes.</p></details>
           </section>
           <section aria-labelledby="earn-trust">
             <h3 id="earn-trust">How to Earn Trust</h3>
             <dl className={styles.trustBenefits}>
               <div><dt>Complete an adoption</dt><dd>+5 Trust</dd></div>
               <div><dt>Refresh arrivals</dt><dd>+1 Trust</dd></div>
+              <div><dt>Complete a Hearth request</dt><dd>Varies</dd></div>
             </dl>
           </section>
         </div>
