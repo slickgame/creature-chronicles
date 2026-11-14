@@ -21,6 +21,12 @@ import styles from "./Hearthside.module.css";
 
 type Popup = "talk" | "trust" | "profile" | "adopt" | "refresh" | "result" | "welcome" | null;
 type Quote = { listingId: string; price: number } | null;
+const adoptionTopics = [
+  { title: "Finding the right habitat", icon: "ledger-fence", answer: "Check the matching habitat on the arrival’s card. Your ranch needs that habitat unlocked and at least one open space before I can place the companion with you." },
+  { title: "Making room", icon: "talk-gate", answer: "Look at the habitat capacity on the arrival’s card. If it’s full, check the habitat upgrades at the Ranch Office. Then come back and check the available space again." },
+  { title: "Preparing for adoption", icon: "ledger-purse", answer: "Review the placement before you commit. I’ll show you the habitat, how many spaces will be occupied, the adoption fee, and how much Gold you’ll have left. Once you confirm, your companion moves straight into the matching habitat." },
+] as const;
+
 function createMarketPreviewCreature(save: GameSave, listing: MarketListing): CreatureRecord {
   const variant = getVariantDefinition(listing.variantId);
   const preview = getMarketListingPreview(save, listing);
@@ -68,11 +74,13 @@ export function MarketScreen() {
   const { currentSave, saveCurrentGame, buyMarketCreature, rerollMarket, goToTown } = useGameContext();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [popup, setPopup] = useState<Popup>(null);
+  const [talkTopic, setTalkTopic] = useState<number | null>(null);
   const [quote, setQuote] = useState<Quote>(null);
   const [refreshQuote, setRefreshQuote] = useState({ cost: 0, week: 0, count: 0 });
   const [message, setMessage] = useState("");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(1);
+  const lastTopicButton = useRef<number | null>(null);
   const dockRef = useRef<HTMLDivElement>(null);
   const sizeRef = useRef(1);
   const actionLock = useRef(false);
@@ -139,7 +147,7 @@ export function MarketScreen() {
       <aside className={styles.gallerySteward} aria-label="Adoption steward">
         <img src="/images/ui/adoption-gallery/tamsin.webp" alt="" />
         <div><strong>Tamsin Vale</strong><small>Adoption Steward · Trust {trust.level}</small></div>
-        <button onClick={() => setPopup("talk")} aria-label="Talk to Tamsin">Talk</button>
+        <button onClick={() => { setTalkTopic(null); setPopup("talk"); }} aria-label="Talk to Tamsin">Talk</button>
         <button className={styles.trustButton} onClick={() => setPopup("trust")}>Trust Ledger</button>
       </aside>
       <div className={styles.balance}><strong>{save.currencies.gold.toLocaleString()} Gold</strong></div>
@@ -204,7 +212,49 @@ export function MarketScreen() {
     {popup === "refresh" ? <GameDialog title="Refresh Arrivals" onClose={() => setPopup(null)}><p>Replace the current placement board with new arrivals for <strong>{rerollCost} Gold</strong>. The current listings will be replaced; creatures already adopted stay on your ranch.</p><p>Arrivals also restock automatically each week.</p><p>{save.currencies.gold < rerollCost ? `Need ${rerollCost - save.currencies.gold} more Gold.` : `Balance after fee: ${(save.currencies.gold - rerollCost).toLocaleString()} Gold.`}</p>{!refreshValid ? <p>The board or cost changed. Close this window and review the refresh again.</p> : null}<div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup(null)}>Cancel</button><button type="button" className={ui.primary} disabled={!refreshValid || save.currencies.gold < rerollCost} onClick={refresh}>Confirm Refresh</button></div></GameDialog> : null}
     {popup === "result" || (popup === "welcome" && !sold) ? <GameDialog title="Hearth Update" onClose={() => setPopup(null)}><p role="status">{message}</p><p>Current Gold: <strong>{save.currencies.gold.toLocaleString()}</strong></p><button type="button" onClick={() => setPopup(null)}>Continue</button></GameDialog> : null}
     {popup === "profile" && selected ? <GameDialog title={`${selected.displayName} · Full Profile`} wide onClose={() => setPopup(null)}><div className={styles.profile}><SharedCreatureDetail useGameplayArt creature={createMarketPreviewCreature(save, selected)} mode="full" showActions={false} dossier /></div></GameDialog> : null}
-    {popup === "talk" ? <GameDialog title="Talk to Tamsin" onClose={() => setPopup(null)}><img className={styles.talkPortrait} src="/images/ui/adoption-gallery/tamsin.webp" alt="Tamsin Vale" /><h3>Placement Philosophy</h3><p>{trust.level >= 4 ? "I have a few contacts who only call when a placement is delicate. Keep showing me you can handle that responsibility, and I will let those cases reach your ranch first." : trust.level >= 2 ? "You are building a reputation here. The creatures you adopt are settling well enough that I can argue for better fees on your behalf." : "Start with steady care. I watch what happens after the adoption, not just whether you can pay the fee."}</p><p>Each listing represents a creature whose needs were screened, documented, and matched to a ranch that can support its family and temperament.</p><button type="button" onClick={() => setPopup("trust")}>Open Trust Ledger</button></GameDialog> : null}
+    {popup === "talk" ? (
+      <GameDialog title="Talk to Tamsin" dialogClassName={styles.talkDialog} wide onClose={() => setPopup(null)}>
+        <div className={styles.talkSpread}>
+          <figure className={styles.talkGuide}>
+            <div className={styles.talkPortrait}><img src="/images/ui/adoption-gallery/tamsin.webp" alt="" /></div>
+            <figcaption><strong>Tamsin Vale</strong><em>Adoption Steward</em></figcaption>
+          </figure>
+          <section className={styles.talkPaper} aria-label="Adoption advice">
+            {talkTopic === null ? (
+              <>
+                <p className={styles.talkIntro}>Let’s make sure your new companion has a home waiting.</p>
+                <div className={styles.talkTopics}>
+                  {adoptionTopics.map(({title, icon}, index) => (
+                    <button type="button" key={title} ref={(node) => {
+                      if (node && lastTopicButton.current === index) {
+                        node.focus({ preventScroll: true });
+                        lastTopicButton.current = null;
+                      }
+                    }} onClick={() => setTalkTopic(index)}>
+                      <img src={`/images/ui/adoption-gallery/${icon}.webp`} alt="" />
+                      <span>{title}</span><span aria-hidden="true">›</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 tabIndex={-1} ref={(node) => { node?.focus({ preventScroll: true }); }}>{adoptionTopics[talkTopic].title}</h3>
+                <p>{adoptionTopics[talkTopic].answer}</p>
+                {talkTopic === 2 && <p>{trust.level >= 4 ? "I have a few contacts who only call when a placement is delicate. Keep showing me you can handle that responsibility, and I will let those cases reach your ranch first." : trust.level >= 2 ? "You are building a reputation here. The creatures you adopt are settling well enough that I can argue for better fees on your behalf." : "Start with steady care. I watch what happens after the adoption, not just whether you can pay the fee."}</p>}
+                <div className={styles.talkFollowup}>
+                  <button type="button" onClick={() => { lastTopicButton.current = talkTopic; setTalkTopic(null); }}>Back to Topics</button>
+                  {talkTopic === 2 && <button type="button" onClick={() => setPopup("trust")}>Open Trust Ledger</button>}
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+        <footer className={styles.talkFooter}>
+          <button type="button" data-initial-focus onClick={() => setPopup(null)}>Back to Arrivals</button>
+        </footer>
+      </GameDialog>
+    ) : null}
     {popup === "trust" ? <GameDialog title="Trust & Welfare Ledger" onClose={() => setPopup(null)}><TrustLeaves level={trust.level} /><h3>{getNpcTrustSummary(save, "tamsin_vale")}</h3><p>Next: {getNpcNextUnlock(save, "tamsin_vale")}</p><dl className={styles.report}><div><dt>Hearth level</dt><dd>{getTotalTownUpgradeTiers(save, "market") + 1}</dd></div><div><dt>Board slots</dt><dd>{effects.marketListingCount}</dd></div><div><dt>Adoption discount</dt><dd>{Math.round((1 - getTamsinAdoptionFeeMultiplier(save)) * 100)}%</dd></div><div><dt>Special placement chance</dt><dd>{((effects.marketVariantChance + getTamsinSpecialPlacementBonus(save)) * 100).toFixed(2)}%</dd></div><div><dt>Refresh cost</dt><dd>{rerollCost} Gold</dd></div></dl><p>Successful adoptions grant 5 Trust; refreshing arrivals grants 1. Trust and town upgrades can improve fees, refresh costs and special placement chances.</p><p>Stat numbers and their letter grades are shown together. Full Profile contains the expanded stats, abilities and care details.</p></GameDialog> : null}
   </main>;
 }

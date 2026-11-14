@@ -180,7 +180,6 @@
 .hearth .steward{align-self:stretch;gap:8px;min-height:0;}
 .keeperPortrait{width:100%;height:0;min-height:65px;max-height:200px;flex:1;object-fit:contain;object-position:bottom;}
 .hearth .steward h2{font-size:23px;}.steward .motto{font-size:13px;}
-.talkPortrait{display:block;width:100%;height:260px;object-fit:contain;margin-bottom:15px;}
 .hearth .preview h2{width:100%;max-width:450px;border:0;border-image:none;background:url('/images/ui/atelier-v1/sign.webp') center/100% 100% no-repeat;padding:25px 40px 17px;}
 .preview img{flex:1;height:0;}
 .fee>strong{display:flex;align-items:center;gap:5px;}.fee>strong>[aria-hidden]{width:24px;height:24px;flex:none;}
@@ -555,4 +554,157 @@ dialog.adoptionDialog {
  .adoptionSpread .ledgerStamp { width:40px; padding-top:14px; }
  .adoptionSpread .slotMarks > span { width:13px; height:13px; }
  .adoptionDialog footer button,.adoptionDialog footer button:last-child { min-height:32px; }
+}
+
+dialog.talkDialog {
+ --talk-sprig: url('/images/ui/adoption-gallery/ledger-sprig.webp');
+ --talk-button: url('/images/ui/adoption-gallery/talk-button.webp');
+ width: min(1060px, calc(100vw - 30px));
+ border: 18px solid transparent;
+ border-image: url('/images/ui/adoption-gallery/ledger-window.webp') 84 fill / 30px stretch;
+ background: transparent;
+ padding: 8px 10px;
+ color: #fff0cb;
+ font-family: Georgia, serif;
+}
+.talkDialog::backdrop {
+ background: linear-gradient(#28190c22,#28190c38), url('/images/ui/adoption-gallery/hearth.webp') center / cover;
+}
+.talkDialog > header {
+ position: static;
+ display: block;
+ padding: 0 0 12px;
+ text-align: center;
+ background: none;
+ border: 0;
+}
+.talkDialog > header h2 {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: clamp(8px,2vw,32px);
+ font-size: clamp(25px,4.3vw,52px);
+ text-shadow: 0 2px 2px #111;
+}
+.talkDialog > header button { display: none; }
+.talkDialog > header h2::before, .talkDialog > header h2::after,
+.talkFooter::before, .talkFooter::after {
+ content: "";
+ flex: 0 0 clamp(22px,6vw,76px);
+ height: 1em;
+ background: var(--talk-sprig) center / contain no-repeat;
+}
+.talkDialog > header h2::after, .talkFooter::after { transform: scaleX(-1); }
+.talkDialog > header + div { padding: 0; }
+.talkSpread {
+ display: grid;
+ grid-template-columns: minmax(0, .61fr) minmax(0, 1fr);
+ gap: 8px;
+}
+.talkGuide { position: relative; display: grid; margin: 0; min-width: 0; }
+.talkPortrait {
+ position: relative;
+ overflow: hidden;
+ border-radius: 52% 52% 10% 10% / 37% 37% 7% 7%;
+ background: linear-gradient(0deg,#17271695,transparent), url('/images/ui/adoption-gallery/hearth.webp') 32% center / auto 100%;
+}
+.talkPortrait::after {
+ content: "";
+ position: absolute;
+ inset: 0;
+ background: url('/images/ui/adoption-gallery/talk-arch.webp') center / 100% 100% no-repeat;
+ pointer-events: none;
+}
+.talkPortrait img { position:absolute; inset: 0; width:100%; height:100%; object-fit:cover; object-position:top center; }
+.talkGuide figcaption {
+ position: absolute;
+ inset: auto 0 0;
+ display: grid;
+ text-align: center;
+ border: 1px solid transparent;
+ border-image: var(--talk-button) 48 fill / 15px stretch;
+ padding: 13px 22px;
+ line-height: 1.25;
+ font-size: clamp(15px,2.3vw,27px);
+}
+.talkGuide strong { font-size: 1.2em; }
+.talkPaper {
+ color: #302414;
+ border: 2px solid transparent;
+ border-image: url('/images/ui/adoption-gallery/ledger-paper.webp') 85 fill / 21px stretch;
+ padding: clamp(15px,3vw,40px);
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ min-width: 0;
+}
+.talkPaper h3 { font-size: clamp(20px,3vw,38px); margin: 0; }
+.talkPaper p { font-size: clamp(15px,1.65vw,23px); margin: 8px 0; line-height: 1.3; }
+.talkPaper .talkIntro { font-size: clamp(21px,2.65vw,38px); font-style: italic; text-align: center; margin: 2px 0 12px; }
+.talkIntro::after {
+ content: "";
+ display: block;
+ height: 19px;
+ margin-top: 9px;
+ background: url('/images/ui/adoption-gallery/talk-divider.webp') center / min(80%,350px) 100% no-repeat;
+}
+.talkTopics { display: grid; gap: clamp(5px,1.3dvh,12px); }
+.talkDialog .talkTopics button, .talkDialog .talkFollowup button, .talkDialog .talkFooter button {
+ border: 1px solid transparent;
+ border-image: var(--talk-button) 48 fill / 15px stretch;
+ color: #fff2d2;
+ font: 700 clamp(16px,2vw,28px)/1.15 Georgia,serif;
+ text-shadow: 0 2px 2px #121509;
+ padding: 10px 22px;
+}
+.talkDialog .talkTopics button {
+ display: grid;
+ grid-template-columns: auto minmax(0,1fr) auto;
+ gap: 10px;
+ align-items: center;
+ text-align: left;
+}
+.talkDialog button:hover { filter: brightness(1.17); }
+.talkTopics img { width: clamp(24px,4.3vw,58px); aspect-ratio: 1; object-fit: contain; }
+.talkTopics button span:first-of-type { padding-left: 10px; border-left: 1px solid #caaa62; }
+.talkTopics button span:last-of-type { color: #f9cf7b; font-size: 1.4em; }
+.talkFollowup, .talkFooter { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; }
+.talkFooter { margin-top: 10px; }
+.talkDialog .talkFooter button { min-width: min(250px,66%); }
+@media(max-width: 620px) and (orientation: portrait) {
+ dialog.talkDialog { padding: 2px; border-width: 13px; border-image-width: 22px; }
+ .talkSpread { grid-template-columns: minmax(0,1fr); gap: 6px; }
+ .talkGuide { min-height: 78px; display: flex; align-items: center; }
+ .talkPortrait { z-index: 1; width: 78px; height: 78px; border-radius: 50%; border: 3px double #efc575; flex: none; }
+ .talkPortrait::after { display: none; }
+ .talkGuide figcaption { inset: auto 0 auto 50px; padding: 9px 12px 9px 32px; text-align: left; }
+ .talkPaper { padding: 13px 10px; min-height: 215px; }
+ .talkPaper .talkIntro { font-size: clamp(18px,5.5vw,24px); }
+ .talkDialog .talkTopics button { gap: 6px; padding: 9px 13px; }
+ .talkDialog .talkFooter button { min-height: 40px; }
+ .talkFooter { gap: 4px; }
+}
+@media(max-height: 480px) and (orientation: landscape) {
+ dialog.talkDialog { padding: 0 4px; border-width: 12px; border-image-width: 20px; }
+ .talkDialog > header { padding-bottom: 4px; }
+ .talkPaper { padding: 5px 12px; }
+ .talkPaper .talkIntro { font-size: 18px; margin: 0 0 4px; }
+ .talkIntro::after { height: 10px; margin-top: 2px; }
+ .talkDialog .talkTopics button, .talkDialog .talkFollowup button, .talkDialog .talkFooter button {
+  min-height: 32px; padding: 5px 14px; font-size: 16px;
+ }
+ .talkTopics img { width: 22px; }
+ .talkFooter { margin-top: 4px; }
+}
+@media(min-width: 900px) and (min-height: 700px) {
+ dialog.talkDialog { width: min(1180px,calc(100vw - 40px)); padding: 12px 16px; }
+ .talkSpread { gap: 10px; }
+ .talkPaper { padding-block: 34px; }
+ .talkTopics img { width: 57px; }
+ .talkDialog .talkTopics button { padding-block: 12px; }
+}
+@media(max-height: 480px) and (orientation: landscape) {
+ .talkPaper:has(h3) { max-height: calc(100dvh - 112px); overflow-y: auto; justify-content: safe center; }
+ .talkPaper:has(h3) p { font-size: 13px; margin: 4px 0; }
+ .talkPaper:has(h3) h3 { font-size: 19px; }
 }
