@@ -216,7 +216,9 @@ export function MarketScreen() {
       <GameDialog title="Talk to Tamsin" dialogClassName={styles.talkDialog} wide onClose={() => setPopup(null)}>
         <div className={styles.talkSpread}>
           <figure className={styles.talkGuide}>
-            <div className={styles.talkPortrait}><img src="/images/ui/adoption-gallery/tamsin.webp" alt="" /></div>
+            <div className={styles.talkPortrait}>
+              <div className={styles.talkPortraitArt}><img src="/images/ui/adoption-gallery/tamsin.webp" alt="" /></div>
+            </div>
             <figcaption><strong>Tamsin Vale</strong><em>Adoption Steward</em></figcaption>
           </figure>
           <section className={styles.talkPaper} aria-label="Adoption advice">

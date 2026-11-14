@@ -602,10 +602,13 @@ dialog.talkDialog {
  gap: 8px;
 }
 .talkGuide { position: relative; display: grid; margin: 0; min-width: 0; }
-.talkPortrait {
- position: relative;
+.talkPortrait { position: relative; }
+.talkPortraitArt {
+ position: absolute;
+ inset: 0;
  overflow: hidden;
- border-radius: 52% 52% 10% 10% / 37% 37% 7% 7%;
+ /* Match the brass sprite's arch and straight sides, including at stretched aspect ratios. */
+ mask: url('/images/ui/adoption-gallery/talk-arch-mask.svg') center / 100% 100% no-repeat;
  background: linear-gradient(0deg,#17271695,transparent), url('/images/ui/adoption-gallery/hearth.webp') 32% center / auto 100%;
 }
 .talkPortrait::after {
@@ -615,7 +618,7 @@ dialog.talkDialog {
  background: url('/images/ui/adoption-gallery/talk-arch.webp') center / 100% 100% no-repeat;
  pointer-events: none;
 }
-.talkPortrait img { position:absolute; inset: 0; width:100%; height:100%; object-fit:cover; object-position:top center; }
+.talkPortrait img { position: absolute; inset: auto 5% 9%; width: 90%; height: 84%; object-fit: contain; object-position: center bottom; }
 .talkGuide figcaption {
  position: absolute;
  inset: auto 0 0;
@@ -675,8 +678,10 @@ dialog.talkDialog {
  dialog.talkDialog { padding: 2px; border-width: 13px; border-image-width: 22px; }
  .talkSpread { grid-template-columns: minmax(0,1fr); gap: 6px; }
  .talkGuide { min-height: 78px; display: flex; align-items: center; }
- .talkPortrait { z-index: 1; width: 78px; height: 78px; border-radius: 50%; border: 3px double #efc575; flex: none; }
+ .talkPortrait { z-index: 1; overflow: hidden; width: 78px; height: 78px; border-radius: 50%; border: 3px double #efc575; flex: none; }
  .talkPortrait::after { display: none; }
+ .talkPortraitArt { mask: none; }
+ .talkPortrait img { inset: 0; width: 100%; height: 100%; object-fit: cover; }
  .talkGuide figcaption { inset: auto 0 auto 50px; padding: 9px 12px 9px 32px; text-align: left; }
  .talkPaper { padding: 13px 10px; min-height: 215px; }
  .talkPaper .talkIntro { font-size: clamp(18px,5.5vw,24px); }
