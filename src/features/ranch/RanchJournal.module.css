@@ -260,3 +260,26 @@ dialog.placementDialog {
  .placementDialog .counterDetail h3::before,
  .placementDialog .counterDetail h3::after { display: none; }
 }
+
+.recordsDialog .counterScene {
+ background-image: url('/images/ui/adoption-gallery/mara-records-room.webp');
+ background-position: center 52%;
+}
+.recordsDialog .counterPaper {
+ border-image: none;
+ background: #ead5ad url('/images/ui/adoption-gallery/mara-records-panel.webp') center / 100% 100% no-repeat;
+ padding: 16px 15px 20px;
+}
+.recordsDialog .counterName,.recordsDialog .counterDetail h3 { color: #3d2716; }
+.recordsDialog .counterDetail h3 { font-size: clamp(19px,4vw,28px); }
+.recordsDialog .recordsStatus {
+ margin: 0;
+ color: #23472a;
+ font-style: italic;
+ font-weight: bold;
+ padding-block: 3px;
+}
+.recordsDialog .counterAction {
+ border: 0;
+ background: url('/images/ui/adoption-gallery/ledger-button.webp') center / 100% 100% no-repeat;
+}
